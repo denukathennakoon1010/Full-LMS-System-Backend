@@ -105,6 +105,57 @@ router.put('/users/:userId/grade', protect, adminOnly, async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+// ============================================
+// @route POST /api/admin/users
+// @desc Create a new user (Admin only)
+// ============================================
+router.post('/users', protect, adminOnly, async (req, res) => {
+    try {
+        const { username, password, grade, role } = req.body;
+        
+        // Check if user already exists
+        const existingUser = await User.findOne({ username });
+        if (existingUser) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Username already exists' 
+            });
+        }
+        
+        // Hash the password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        
+        // Create new user
+        const user = await User.create({
+            username,
+            password: hashedPassword,
+            grade: grade || '10',
+            role: role || 'student'
+        });
+        
+        // Return user without password
+        const userData = {
+            id: user._id,
+            username: user.username,
+            grade: user.grade,
+            role: user.role
+        };
+        
+        res.status(201).json({ 
+            success: true, 
+            message: 'User created successfully',
+            data: userData 
+        });
+        
+    } catch (error) {
+        console.error('Admin create user error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+});
 
 // @route   PUT /api/admin/users/:userId/password
 // @desc    Reset user password (Admin only)
