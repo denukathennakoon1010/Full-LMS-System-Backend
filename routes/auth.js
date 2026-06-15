@@ -79,16 +79,16 @@ router.post('/login', async (req, res) => {
             });
         }
         
-        // Generate JWT token
-        const token = jwt.sign(
-            { 
-                id: user._id, 
-                username: user.username, 
-                role: user.role || 'student' 
-            },
-            process.env.JWT_SECRET || 'your_secret_key',
-            { expiresIn: '7d' }
-        );
+const jwt = require('jsonwebtoken');
+
+// After password verification
+const token = jwt.sign(
+    { id: user._id, username: user.username, role: user.role || 'student' },
+    process.env.JWT_SECRET || 'my_secret_key',
+    { expiresIn: '7d' }
+);
+
+res.json({ success: true, token, user: { id: user._id, username: user.username } });
         
         console.log('Login successful for:', username);
         
